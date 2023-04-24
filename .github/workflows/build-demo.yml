@@ -1,0 +1,52 @@
+name: Demo to writing GitHub Actions Build Scripts
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  push:
+    branches:
+      - master
+      - main
+      - development
+
+
+jobs:
+  Demo-GH-Actions:
+    runs-on: self-hosted
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+
+      - run: echo "🎉 The job was automatically triggered by a ${{ github.event_name }} event."
+      - run: echo "🐧 This job is now running on a ${{ runner.os }} server hosted!"
+      - run: echo "🔎 The name of your branch is ${{ github.ref }} and your repository is ${{ github.repository }}."
+
+
+      - run: echo "💡 The ${{ github.repository }} repository has been cloned to the runner."
+
+      - run: echo "🖥️ The workflow is now ready to test your code on the runner."
+      - name: List files in the repository
+        run: |
+          ls -la ${{ github.workspace }}
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+      - name: Build with Maven
+        run: cd GhActionsDemo && mvn --batch-mode --update-snapshots package
+
+      - name: Publish Test Report
+        if: ${{ always() }}
+        uses: ScaCap/action-surefire-report@v1.2.0
+        with:
+          check_name: JUnit Test Results
+
+      - name: Publish Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: Compiled JAR
+          path: GhActionsDemo/target/GhActionsDemo-0.0.1-SNAPSHOT.jar
